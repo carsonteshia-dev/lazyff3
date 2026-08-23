@@ -79,22 +79,12 @@ pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/RelkzzRebranded/Bypassed---OBFUSCATED..../main/Adonis%20BYPASS.lua"))()
 end)
 
--- Metamethod Kick Bypass, GUI Hiding, & Adonis GC hooks
+-- Metamethod Kick Bypass & GUI Hiding
 local cclosure = syn_newcclosure or newcclosure or nil
 local checkcaller = checkcaller or function() return false end
 local oldNamecall
 local oldIndex
 local targetGuiName = "shystxlazy_ffm"
-local protectedObjects = {}
-
-local function protect(obj)
-    if type(obj) == "table" or type(obj) == "function" or type(obj) == "userdata" then
-        protectedObjects[obj] = true
-    end
-    return obj
-end
-
-protect(protectedObjects)
 
 if cclosure and hookmetamethod then
     -- Kick & Detection Remotes Bypass
@@ -162,88 +152,17 @@ if cclosure and hookmetamethod then
     end)
 end
 
--- Garbage Collection / Fallback Adonis Variable Hook
-pcall(function()
-    local oldGetGC = getgc
-    if oldGetGC then
-        hookfunction(oldGetGC, cclosure(function(...)
-            local gc = oldGetGC(...)
-            local caller = false
-            pcall(function() caller = checkcaller() end)
-            if caller then
-                return gc
-            end
-            local clean = {}
-            for _, v in ipairs(gc) do
-                if not protectedObjects[v] then
-                    table.insert(clean, v)
-                end
-            end
-            return clean
-        end))
-    end
-end)
-
--- Garbage Collection / Fallback Adonis Variable Hook
-local Detected, Kill
-pcall(function()
-    local gc = getgc(true)
-    for i = 1, #gc do
-        local v = gc[i]
-        if typeof(v) == "table" then
-            -- Kick instance hooks
-            local rawIndex = rawget(v, "indexInstance")
-            if rawIndex and type(rawIndex) == "table" and rawIndex[1] == "kick" then
-                v.tvk = {"kick", function() 
-                    return game.Workspace:WaitForChild("") 
-                end}
-            end
-            
-            -- Crash hook defusion
-            local rawCrash = rawget(v, "crash")
-            if rawCrash and typeof(rawCrash) == "function" then
-                hookfunction(rawCrash, function() end)
-            end
-
-            -- Detect/Kill hooks
-            local DetectFunc = rawget(v, "Detected")
-            local KillFunc = rawget(v, "Kill")
-
-            if typeof(DetectFunc) == "function" and not Detected then
-                Detected = DetectFunc
-                hookfunction(Detected, function(Action, Info, NoCrash)
-                    return true
-                end)
-            end
-
-            if rawget(v, "Variables") and rawget(v, "Process") and typeof(KillFunc) == "function" and not Kill then
-                Kill = KillFunc
-                hookfunction(Kill, function(Info) end)
-            end
-        end
-    end
-end)
-
--- Yield Adonis debug environment checks
-pcall(function()
-    local Old; Old = hookfunction(getrenv().debug.info, newcclosure(function(...)
-        local LevelOrFunc, Info = ...
-        if Detected and LevelOrFunc == Detected then
-            return coroutine.yield(coroutine.running())
-        end
-        return Old(...)
-    end))
-end)
-
 -- Camera Anti-Cheat listener detachments
 pcall(function()
-    local con1 = getconnections(workspace.CurrentCamera.Changed)
-    for i = 1, #con1 do
-        con1[i]:Disable()
-    end
-    local con2 = getconnections(workspace.CurrentCamera:GetPropertyChangedSignal("CFrame"))
-    for i = 1, #con2 do
-        con2[i]:Disable()
+    if getconnections then
+        local con1 = getconnections(workspace.CurrentCamera.Changed)
+        for i = 1, #con1 do
+            con1[i]:Disable()
+        end
+        local con2 = getconnections(workspace.CurrentCamera:GetPropertyChangedSignal("CFrame"))
+        for i = 1, #con2 do
+            con2[i]:Disable()
+        end
     end
 end)
 
