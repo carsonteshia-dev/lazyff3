@@ -649,7 +649,7 @@ local cleanupFunc = function()
 end
 
 _G.ShystxLazyEngineCleanup = cleanupFunc
-if getgenv then getgenv().ShystxLazyEngineCleanup = cleanupFunc end
+]==]
 
 local function StartEngineWithAutoExec()
     local selfContainedScript = ""
