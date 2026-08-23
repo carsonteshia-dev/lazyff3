@@ -81,6 +81,7 @@ end)
 
 -- Metamethod Kick Bypass, GUI Hiding, & Adonis GC hooks
 local cclosure = syn_newcclosure or newcclosure or nil
+local checkcaller = checkcaller or function() return false end
 local oldNamecall
 local oldIndex
 local targetGuiName = "shystxlazy_ffm"
@@ -101,8 +102,10 @@ if cclosure and hookmetamethod then
         oldNamecall = hookmetamethod(game, "__namecall", cclosure(function(self, ...)
             local NamecallMethod = getnamecallmethod()
             local args = { ... }
+            local caller = false
+            pcall(function() caller = checkcaller() end)
             
-            if not checkcaller() then
+            if not caller then
                 -- Kick protection
                 if (NamecallMethod == "Kick" or NamecallMethod == "kick") then
                     if self == LocalPlayer then
@@ -143,7 +146,10 @@ if cclosure and hookmetamethod then
     -- Property Spoofer (e.g. Gravity check bypass)
     pcall(function()
         oldIndex = hookmetamethod(game, "__index", cclosure(function(self, key)
-            if not checkcaller() then
+            local caller = false
+            pcall(function() caller = checkcaller() end)
+            
+            if not caller then
                 if (self == CoreGui or self == game) and key == targetGuiName then
                     return nil
                 end
@@ -162,7 +168,9 @@ pcall(function()
     if oldGetGC then
         hookfunction(oldGetGC, cclosure(function(...)
             local gc = oldGetGC(...)
-            if checkcaller() then
+            local caller = false
+            pcall(function() caller = checkcaller() end)
+            if caller then
                 return gc
             end
             local clean = {}
